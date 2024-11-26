@@ -174,11 +174,13 @@
           <label for="ltmid_v2">ltmid_v2</label>
           <small>十幾位的英數字</small>
         </div>
+        <div class="form-group">
+          <input type="text" id="key" name="key" required placeholder=" ">
+          <label for="key">驗證碼</label>
+        </div>
         <div class="form-group" style="margin: 0;">
           <input type="submit" value="儲存" id="submitBTN">
           <input type="button" value="說明" onclick="myDialog.showModal()">
-          <input type="hidden" name="key" id="key">
-          <input type="hidden" name="user" id="user">
         </div>
       </form>
 
@@ -213,9 +215,6 @@
     </dialog>
 
     <script>
-      const urlParams = new URLSearchParams(window.location.search);
-      document.getElementById("user").value = urlParams.get("u");
-      document.getElementById("key").value = urlParams.get("k");
       const form = document.querySelector("form");
 
       form.onsubmit = function (e) {
