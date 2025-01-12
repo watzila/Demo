@@ -35,7 +35,7 @@
 
       .form-group label {
         position: absolute;
-        top: 0;
+        top: 15px;
         left: 10px;
         font-size: 1.2rem;
         color: #888888;
@@ -43,7 +43,9 @@
         transform-origin: 0 0;
       }
 
-      .form-group input,
+      .form-group input[type="text"],
+      .form-group input[type="button"],
+      .form-group input[type="submit"],
       .form-group textarea {
         width: 100%;
         padding: 14px;
@@ -157,7 +159,7 @@
   <body>
     <div class="form-container">
       <form
-        action="https://script.google.com/macros/s/AKfycbwst5Dy4CbygewSmh0QQx8G3zvkqU8zbWbIN0-3IrjP0ieUzokeH-sJ5p5RIurBgPzY3g/exec"
+        action="https://script.google.com/macros/s/AKfycbwhglysYyYjr04a3ioGs_WR7UebXjHC4rDJJll0logCnlQOUCTU4Gp24wAG1FSP-OMJDQ/exec"
         method="post">
         <div class="form-group">
           <input type="text" id="ltuid_v2" name="ltuid_v2" required placeholder=" ">
@@ -170,13 +172,14 @@
           <small>v2_ 開頭的一長串字串 (ex: v2_xxxxxxx)</small>
         </div>
         <div class="form-group">
-          <input type="text" id="ltmid_v2" name="ltmid_v2" required placeholder=" ">
-          <label for="ltmid_v2">ltmid_v2</label>
-          <small>十幾位的英數字</small>
-        </div>
-        <div class="form-group">
           <input type="text" id="key" name="key" required placeholder=" ">
           <label for="key">驗證碼</label>
+        </div>
+        <div class="form-group">
+          <input type="checkbox" name="game" value="genshin" checked>原神
+          <input type="checkbox" name="game" value="zenlessZoneZero">絕區零
+          <input type="checkbox" name="game" value="honkaiStarRail">崩壞星穹鐵道
+          <label>要自動簽到的遊戲</label>
         </div>
         <div class="form-group" style="margin: 0;">
           <input type="submit" value="儲存" id="submitBTN">
@@ -202,7 +205,6 @@
             <ul>
               <li>ltuid_v2：一串數字 (ex: 123456789)</li>
               <li>ltoken_v2：v2_ 開頭的一長串字串 (ex: v2_xxxxxxx)</li>
-              <li>ltmid_v2：十幾位的英數字</li>
             </ul>
           </li>
         </ol>
@@ -219,20 +221,30 @@
 
       form.onsubmit = function (e) {
         e.preventDefault();
-        document.getElementById("message").textContent = "Submitting..";
+        document.getElementById("message").textContent = "送出中..";
         document.getElementById("message").style.display = "block";
         document.getElementById("submitBTN").disabled = true;
 
         var formData = new FormData(this);
-        var keyValuePairs = [];
+        var keyValuePairs = {};
         for (var pair of formData.entries()) {
-          keyValuePairs.push(pair[0] + "=" + pair[1]);
+          const key = pair[0];
+          const value = pair[1];
+
+          if (keyValuePairs[key]) {
+            keyValuePairs[key] += "," + value;
+          } else {
+            keyValuePairs[key] = value;
+          }
         }
 
-        var formDataString = keyValuePairs.join("&");
+        var formDataString = Object.entries(keyValuePairs)
+          .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+          .join("&");
 
         postData(this.action, formDataString)
           .then((res) => {
+            console.log(res);
             document.getElementById("message").textContent = res.msg;
             document.getElementById("message").style.display = "block";
             document.getElementById("message").style.backgroundColor = "green";
@@ -246,7 +258,7 @@
             }, 5000);
           })
           .catch((error) => {
-            document.getElementById("message").textContent = res.msg;
+            document.getElementById("message").textContent = error;
             document.getElementById("message").style.display = "block";
           });
 
@@ -254,16 +266,18 @@
       };
 
       function postData(url, data) {
-        // Default options are marked with *
-        return fetch(url, {
-          body: data, // must match 'Content-Type' header
-          headers: {
-            'Content-Type': 'text/plain;charset=utf-8'
-          },
-          method: "POST", // *GET, POST, PUT, DELETE, etc.
-          redirect: "follow", // manual, *follow, error
-        })
-          .then((response) => response.json())// 輸出成 json
+        const myHeaders = new Headers();
+        myHeaders.append("Content-Type", "application/x-www-form-urlencoded");
+
+        const requestOptions = {
+          method: "POST",
+          headers: myHeaders,
+          body: data,
+          redirect: "follow"
+        };
+
+        return fetch(url, requestOptions)
+          .then((response) => response.json())
           .catch(function (error) {
             document.getElementById("message").textContent = "錯誤";
             document.getElementById("message").style.display = "block";
